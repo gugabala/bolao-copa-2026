@@ -6,6 +6,7 @@ import { PartidasPage } from '@/pages/partidas/PartidasPage'
 import { AdminPartidasPage } from '@/pages/admin/AdminPartidasPage'
 import { AdminUsuariosPage } from '@/pages/admin/AdminUsuariosPage'
 import { RankingPage } from '@/pages/ranking/RankingPage'
+import { PerfilPage } from '@/pages/perfil/PerfilPage'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="partidas" element={<PartidasPage />} />
         <Route path="ranking" element={<RankingPage />} />
         <Route path="admin" element={<Navigate to="/admin/partidas" replace />} />
+        <Route path="perfil" element={<PerfilPage />} />
         <Route
           path="admin/partidas"
           element={

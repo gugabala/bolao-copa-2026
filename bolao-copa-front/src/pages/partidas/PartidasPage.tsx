@@ -16,7 +16,11 @@ type Partida = {
     situacao: string
     aDefinir: boolean
     aberto: boolean
-    minhaAposta: { golsCasa: number; golsVisitante: number } | null
+    minhaAposta: {
+        golsCasa: number
+        golsVisitante: number
+        pontuacao: { pontos: number; tipo: string } | null
+    } | null
     grupoTorneio: { nome: string; rotulo: string; fase: string; ordem: number }
 }
 
@@ -36,6 +40,7 @@ function formatarHorario(dataHora: string) {
     })
 }
 
+
 function BadgeSituacao({ partida }: { partida: Partida }) {
     if (partida.situacao === 'FINALIZADA') {
         return <Badge variant="secondary">Encerrada</Badge>
@@ -45,6 +50,15 @@ function BadgeSituacao({ partida }: { partida: Partida }) {
     }
     return <Badge variant="default">Aberta</Badge>
 }
+
+function BadgePontuacao({ tipo, pontos }: { tipo: string; pontos: number }) {
+    if (tipo === 'EXATO') return <Badge className="bg-green-600 text-white text-xs">🎯 {pontos}pts</Badge>
+    if (tipo === 'VENCEDOR') return <Badge className="bg-blue-600 text-white text-xs">✅ {pontos}pts</Badge>
+    if (tipo === 'EMPATE') return <Badge className="bg-yellow-600 text-white text-xs">🤝 {pontos}pts</Badge>
+    return <Badge variant="destructive" className="text-xs">❌ {pontos}pts</Badge>
+}
+
+
 function CardPartida({
     partida,
     onApostar,
@@ -75,15 +89,27 @@ function CardPartida({
                 <span className="font-medium text-left flex-1">{partida.timeVisitante}</span>
             </div>
 
-            <div className="flex justify-end sm:w-36">
+            <div className="flex justify-end sm:w-44">
                 {partida.minhaAposta ? (
-                    <span className="text-sm text-muted-foreground">
-                        Palpite: {partida.minhaAposta.golsCasa} × {partida.minhaAposta.golsVisitante}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                            {partida.minhaAposta.golsCasa} × {partida.minhaAposta.golsVisitante}
+                        </span>
+                        {partida.minhaAposta.pontuacao ? (
+                            <BadgePontuacao
+                                tipo={partida.minhaAposta.pontuacao.tipo}
+                                pontos={partida.minhaAposta.pontuacao.pontos}
+                            />
+                        ) : null}
+                    </div>
                 ) : partida.aberto && !partida.aDefinir ? (
                     <button
                         className="text-sm text-blue-500 hover:underline"
-                        onClick={() => onApostar({ id: partida.id, timeCasa: partida.timeCasa, timeVisitante: partida.timeVisitante })}
+                        onClick={() => onApostar({
+                            id: partida.id,
+                            timeCasa: partida.timeCasa,
+                            timeVisitante: partida.timeVisitante,
+                        })}
                     >
                         Apostar
                     </button>
@@ -102,16 +128,41 @@ function GrupoPartidas({
     partidas: Partida[]
     onApostar: (p: PartidaSelecionada) => void
 }) {
+    const [aberto, setAberto] = useState(true)
+
+    const totalApostas = partidas.filter((p) => p.minhaAposta).length
+    const totalAbertas = partidas.filter((p) => p.aberto && !p.aDefinir && !p.minhaAposta).length
+
     return (
         <Card>
-            <CardHeader className="pb-3">
-                <CardTitle className="text-base">{nome}</CardTitle>
+            <CardHeader
+                className="pb-3 cursor-pointer select-none"
+                onClick={() => setAberto(!aberto)}
+            >
+                <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">{nome}</CardTitle>
+                    <div className="flex items-center gap-2">
+                        {totalAbertas > 0 && (
+                            <Badge variant="default" className="text-xs">
+                                {totalAbertas} aberta{totalAbertas > 1 ? 's' : ''}
+                            </Badge>
+                        )}
+                        {totalApostas > 0 && (
+                            <Badge variant="secondary" className="text-xs">
+                                {totalApostas} palpite{totalApostas > 1 ? 's' : ''}
+                            </Badge>
+                        )}
+                        <span className="text-muted-foreground text-sm">{aberto ? '▲' : '▼'}</span>
+                    </div>
+                </div>
             </CardHeader>
-            <CardContent className="space-y-2">
-                {partidas.map((p) => (
-                    <CardPartida key={p.id} partida={p} onApostar={onApostar} />
-                ))}
-            </CardContent>
+            {aberto && (
+                <CardContent className="space-y-2">
+                    {partidas.map((p) => (
+                        <CardPartida key={p.id} partida={p} onApostar={onApostar} />
+                    ))}
+                </CardContent>
+            )}
         </Card>
     )
 }

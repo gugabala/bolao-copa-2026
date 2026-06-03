@@ -35,4 +35,25 @@ export const authRouter = router({
     const usuario = await prisma.usuario.findUniqueOrThrow({ where: { id: ctx.usuarioId } })
     return { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil }
   }),
+
+  trocarSenha: protectedProcedure
+  .input(z.object({
+    senhaAtual: z.string().min(6),
+    novaSenha: z.string().min(6),
+  }))
+  .mutation(async ({ ctx, input }) => {
+    const usuario = await prisma.usuario.findUniqueOrThrow({ where: { id: ctx.usuarioId } })
+
+    const senhaOk = await bcrypt.compare(input.senhaAtual, usuario.senhaHash)
+    if (!senhaOk) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Senha atual incorreta' })
+    }
+
+    await prisma.usuario.update({
+      where: { id: ctx.usuarioId },
+      data: { senhaHash: await bcrypt.hash(input.novaSenha, 10) },
+    })
+
+    return { ok: true }
+  }),
 })

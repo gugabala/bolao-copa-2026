@@ -13,7 +13,14 @@ export const apostaRouter = router({
           grupoTorneio: true,
           apostas: {
             where: { usuarioId: ctx.usuarioId },
-            select: { golsCasa: true, golsVisitante: true, criadoEm: true },
+            select: {
+              golsCasa: true,
+              golsVisitante: true,
+              criadoEm: true,
+              pontuacao: {
+                select: { pontos: true, tipo: true }
+              }
+            },
           },
         },
         orderBy: [{ grupoTorneio: { ordem: 'asc' } }, { dataHora: 'asc' }],
@@ -27,37 +34,38 @@ export const apostaRouter = router({
       }))
     }),
 
-apostar: protectedProcedure
-  .input(z.object({
-    partidaId: z.string().uuid(),
-    golsCasa: z.number().int().min(0).max(99),
-    golsVisitante: z.number().int().min(0).max(99),
-  }))
-  .mutation(async ({ ctx, input }) => {
-    const partida = await prisma.partida.findUnique({ where: { id: input.partidaId } })
-    if (!partida) throw new TRPCError({ code: 'NOT_FOUND', message: 'Partida não encontrada' })
-    if (partida.aDefinir) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Partida ainda não definida' })
-    if (partida.situacao === 'FINALIZADA') throw new TRPCError({ code: 'BAD_REQUEST', message: 'Esta partida já foi encerrada' })
 
-    const agora = new Date()
-    if (agora >= partida.prazoAposta) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'Prazo para apostas encerrado' })
-    }
+  apostar: protectedProcedure
+    .input(z.object({
+      partidaId: z.string().uuid(),
+      golsCasa: z.number().int().min(0).max(99),
+      golsVisitante: z.number().int().min(0).max(99),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const partida = await prisma.partida.findUnique({ where: { id: input.partidaId } })
+      if (!partida) throw new TRPCError({ code: 'NOT_FOUND', message: 'Partida não encontrada' })
+      if (partida.aDefinir) throw new TRPCError({ code: 'BAD_REQUEST', message: 'Partida ainda não definida' })
+      if (partida.situacao === 'FINALIZADA') throw new TRPCError({ code: 'BAD_REQUEST', message: 'Esta partida já foi encerrada' })
 
-    const existe = await prisma.aposta.findUnique({
-      where: { usuarioId_partidaId: { usuarioId: ctx.usuarioId, partidaId: input.partidaId } },
-    })
-    if (existe) throw new TRPCError({ code: 'CONFLICT', message: 'Você já apostou nesta partida' })
+      const agora = new Date()
+      if (agora >= partida.prazoAposta) {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Prazo para apostas encerrado' })
+      }
 
-    return prisma.aposta.create({
-      data: {
-        usuarioId: ctx.usuarioId,
-        partidaId: input.partidaId,
-        golsCasa: input.golsCasa,
-        golsVisitante: input.golsVisitante,
-      },
-    })
-  }),
+      const existe = await prisma.aposta.findUnique({
+        where: { usuarioId_partidaId: { usuarioId: ctx.usuarioId, partidaId: input.partidaId } },
+      })
+      if (existe) throw new TRPCError({ code: 'CONFLICT', message: 'Você já apostou nesta partida' })
+
+      return prisma.aposta.create({
+        data: {
+          usuarioId: ctx.usuarioId,
+          partidaId: input.partidaId,
+          golsCasa: input.golsCasa,
+          golsVisitante: input.golsVisitante,
+        },
+      })
+    }),
 
   ranking: protectedProcedure.query(() =>
     prisma.usuario.findMany({

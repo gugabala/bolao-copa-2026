@@ -31,6 +31,7 @@ export function Layout() {
             <nav className="hidden sm:flex gap-4">
               <Link to="/partidas" className={linkClass('/partidas')}>Partidas</Link>
               <Link to="/ranking" className={linkClass('/ranking')}>Ranking</Link>
+              <Link to="/perfil" className={linkClass('/perfil')}>Perfil</Link>
               {isAdmin() && (
                 <>
                   <Link to="/admin/partidas" className={linkClass('/admin/partidas')}>Resultados</Link>
@@ -56,6 +57,7 @@ export function Layout() {
           <div className="sm:hidden border-t mt-3 pt-3 flex flex-col gap-3 max-w-5xl mx-auto">
             <Link to="/partidas" className={linkClass('/partidas')} onClick={() => setMenuAberto(false)}>Partidas</Link>
             <Link to="/ranking" className={linkClass('/ranking')} onClick={() => setMenuAberto(false)}>Ranking</Link>
+            <Link to="/perfil" className={linkClass('/perfil')} onClick={() => setMenuAberto(false)}>Perfil</Link>
             {isAdmin() && (
               <>
                 <Link to="/admin/partidas" className={linkClass('/admin/partidas')} onClick={() => setMenuAberto(false)}>Resultados</Link>
