@@ -45,7 +45,6 @@ function BadgeSituacao({ partida }: { partida: Partida }) {
     }
     return <Badge variant="default">Aberta</Badge>
 }
-
 function CardPartida({
     partida,
     onApostar,
@@ -56,38 +55,38 @@ function CardPartida({
     const temResultado = partida.golsCasa !== null && partida.golsVisitante !== null
 
     return (
-        <div className="flex items-center justify-between py-3 px-4 border rounded-lg bg-background">
-            <div className="flex items-center gap-3 flex-1">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 py-3 px-4 border rounded-lg bg-background">
+            <div className="flex items-center gap-2 sm:w-48">
                 <BadgeSituacao partida={partida} />
-                <span className="text-xs text-muted-foreground w-28">
+                <span className="text-xs text-muted-foreground">
                     {formatarHorario(partida.dataHora)}
                 </span>
             </div>
 
-            <div className="flex items-center gap-4 flex-1 justify-center">
-                <span className="font-medium text-right w-28">{partida.timeCasa}</span>
+            <div className="flex items-center gap-2 flex-1 justify-center">
+                <span className="font-medium text-right flex-1">{partida.timeCasa}</span>
                 {temResultado ? (
-                    <span className="text-lg font-bold w-12 text-center">
+                    <span className="text-lg font-bold w-14 text-center shrink-0">
                         {partida.golsCasa} × {partida.golsVisitante}
                     </span>
                 ) : (
-                    <span className="text-muted-foreground w-12 text-center">×</span>
+                    <span className="text-muted-foreground w-14 text-center shrink-0">×</span>
                 )}
-                <span className="font-medium text-left w-28">{partida.timeVisitante}</span>
+                <span className="font-medium text-left flex-1">{partida.timeVisitante}</span>
             </div>
 
-            <div className="flex-1 flex justify-end">
+            <div className="flex justify-end sm:w-36">
                 {partida.minhaAposta ? (
                     <span className="text-sm text-muted-foreground">
-                        Meu palpite: {partida.minhaAposta.golsCasa} × {partida.minhaAposta.golsVisitante}
+                        Palpite: {partida.minhaAposta.golsCasa} × {partida.minhaAposta.golsVisitante}
                     </span>
                 ) : partida.aberto && !partida.aDefinir ? (
-                    <span
-                        className="text-sm text-blue-500 cursor-pointer hover:underline"
+                    <button
+                        className="text-sm text-blue-500 hover:underline"
                         onClick={() => onApostar({ id: partida.id, timeCasa: partida.timeCasa, timeVisitante: partida.timeVisitante })}
                     >
                         Apostar
-                    </span>
+                    </button>
                 ) : null}
             </div>
         </div>
