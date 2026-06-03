@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Perfil {
+  SUPER_ADMIN
+  ADMIN
+  USUARIO
+}
+
+enum FaseGrupo {
+  GRUPOS
+  OITAVAS
+  QUARTAS
+  SEMIFINAL
+  TERCEIRO_LUGAR
+  FINAL
+}
+
+enum SituacaoPartida {
+  AGENDADA
+  FINALIZADA
+}
+
+enum TipoPontuacao {
+  EXATO
+  VENCEDOR
+  EMPATE
+  ERRO
+}
+
+model Usuario {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  nome       String
+  senhaHash  String
+  perfil     Perfil   @default(USUARIO)
+  ativo      Boolean  @default(true)
+  criadoEm  DateTime @default(now()) @db.Timestamptz
+
+  apostas    Aposta[]
+  pontuacoes Pontuacao[]
+
+  @@map("usuarios")
+}
+
+model GrupoTorneio {
+  id       String    @id @default(uuid())
+  nome     String
+  fase     FaseGrupo
+  rotulo   String
+  ordem    Int
+
+  partidas Partida[]
+
+  @@map("grupos_torneio")
+}
+
+model Partida {
+  id              String          @id @default(uuid())
+  grupoTorneioId  String
+  timeCasa        String
+  timeVisitante   String
+  dataHora        DateTime        @db.Timestamptz
+  prazoAposta     DateTime        @db.Timestamptz
+  golsCasa        Int?
+  golsVisitante   Int?
+  situacao        SituacaoPartida @default(AGENDADA)
+  aDefinir        Boolean         @default(false)
+  criadoEm       DateTime        @default(now()) @db.Timestamptz
+  atualizadoEm   DateTime        @updatedAt @db.Timestamptz
+
+  grupoTorneio GrupoTorneio @relation(fields: [grupoTorneioId], references: [id])
+  apostas      Aposta[]
+  pontuacoes   Pontuacao[]
+
+  @@map("partidas")
+}
+
+model Aposta {
+  id            String   @id @default(uuid())
+  usuarioId     String
+  partidaId     String
+  golsCasa      Int
+  golsVisitante Int
+  criadoEm     DateTime @default(now()) @db.Timestamptz
+
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id])
+  partida   Partida   @relation(fields: [partidaId], references: [id])
+  pontuacao Pontuacao?
+
+  @@unique([usuarioId, partidaId])
+  @@map("apostas")
+}
+
+model Pontuacao {
+  id            String        @id @default(uuid())
+  usuarioId     String
+  apostoId      String        @unique
+  partidaId     String
+  pontos        Int
+  tipo          TipoPontuacao
+  calculadoEm  DateTime      @default(now()) @db.Timestamptz
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  aposta  Aposta  @relation(fields: [apostoId], references: [id])
+  partida Partida @relation(fields: [partidaId], references: [id])
+
+  @@unique([usuarioId, partidaId])
+  @@map("pontuacoes")
+}

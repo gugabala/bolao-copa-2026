@@ -1,0 +1,1 @@
+ALTER DATABASE bolao_copa SET timezone TO 'America/Sao_Paulo';
