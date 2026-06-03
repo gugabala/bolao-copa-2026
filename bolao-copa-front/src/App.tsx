@@ -23,8 +23,22 @@ function App() {
         <Route path="partidas" element={<PartidasPage />} />
         <Route path="ranking" element={<RankingPage />} />
         <Route path="admin" element={<Navigate to="/admin/partidas" replace />} />
-        <Route path="admin/partidas" element={<AdminPartidasPage />} />
-        <Route path="admin/usuarios" element={<AdminUsuariosPage />} />
+        <Route
+          path="admin/partidas"
+          element={
+            <RotaProtegida apenasAdmin>
+              <AdminPartidasPage />
+            </RotaProtegida>
+          }
+        />
+        <Route
+          path="admin/usuarios"
+          element={
+            <RotaProtegida apenasAdmin>
+              <AdminUsuariosPage />
+            </RotaProtegida>
+          }
+        />
       </Route>
     </Routes>
   )

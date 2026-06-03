@@ -36,3 +36,8 @@ export const useAuth = create<AuthStore>((set, get) => ({
     return perfil === 'ADMIN' || perfil === 'SUPER_ADMIN'
   },
 }))
+
+export function handleTokenExpirado() {
+  useAuth.getState().logout()
+  window.location.href = '/login'
+}
